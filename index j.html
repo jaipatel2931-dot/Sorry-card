@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A Little Note From the Heart</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:18px;font-family:system-ui;background:linear-gradient(140deg,#ffe5ed,#fff8f3);color:#503342}
+main{max-width:700px;margin:18px auto;background:#fffdfd;border-radius:28px;padding:26px;box-shadow:0 12px 40px #8b43521c}
+.kicker{text-align:center;letter-spacing:3px;color:#a67889;font-size:12px}.heart{text-align:center;font-size:54px;margin:18px}
+h1{text-align:center;font: bold 42px Georgia;margin:8px}p{text-align:center;line-height:1.6;color:#927987}
+label{display:block;font-weight:650;margin:16px 0 7px}input,textarea,select{width:100%;padding:14px;border:1px solid #efced9;border-radius:15px;font:inherit;background:#fff}
+textarea{min-height:110px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{border:0;border-radius:25px;padding:14px 18px;font-weight:700;font-size:15px;background:#fceaf0;color:#a43e69}
+.primary{width:100%;background:linear-gradient(90deg,#ed7194,#bd3e70);color:white;margin-top:20px}
+#story{display:none;text-align:center}.scene{padding:28px 12px;background:#fff3f6;border-radius:22px;min-height:270px;display:flex;flex-direction:column;justify-content:center}
+.envelope{font-size:68px;animation:float 2s infinite ease-in-out}@keyframes float{50%{transform:translateY(-9px)}}
+.scene h2{font:34px Georgia}.scene p{font:19px/1.7 Georgia;white-space:pre-wrap}
+.controls{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:14px}.controls .primary{width:auto;margin:0}
+.photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.photos img{width:calc(33.3% - 6px);aspect-ratio:1;object-fit:cover;border-radius:14px}
+.small{font-size:12px;color:#a18490;text-align:center;margin-top:12px}
+@media(max-width:500px){.row{grid-template-columns:1fr}main{padding:22px 17px}.photos img{width:calc(50% - 4px)}}
+</style></head><body><main>
+<section id="form">
+<div class="kicker">♡ A LITTLE NOTE FROM THE HEART ♡</div><div class="heart">💗</div>
+<h1>Say it from the heart</h1><p>Create a little personal story with your words, photo memories and a gentle melody. Share it with a link.</p>
+<label>Who is this for?</label><input id="to" placeholder="Their name">
+<label>Your heartfelt message</label><textarea id="msg" placeholder="I’m sorry for the moments I fell short. You mean more to me than I sometimes know how to say..."></textarea>
+<label>One more thing (optional)</label><textarea id="extra" placeholder="What do you want them to remember?"></textarea>
+<div class="row"><div><label>Your name (optional)</label><input id="from" placeholder="From..."></div><div><label>Theme</label><select id="theme"><option>Rose pink</option><option>Lavender</option><option>Peach</option><option>Dreamy blue</option></select></div></div>
+<label>Add photo memories (optional, up to 3)</label><input id="files" type="file" accept="image/*" multiple><div class="photos" id="preview"></div>
+<label>Background melody</label><select id="music"><option value="piano">Gentle piano</option><option value="romantic">Romantic glow</option><option value="dream">Dreamy music box</option><option value="calm">Calm evening</option></select>
+<div class="controls"><button id="previewMusic">▶ Preview melody</button></div><div class="small" id="musicInfo">Tap preview to hear a short melody. Music needs a tap to start on iPhone.</div>
+<button class="primary" id="make">Create my story ✨</button><div class="small">Free to create · No account · Share with a link</div>
+</section>
+<section id="story"><div class="kicker">MADE WITH A LITTLE LOVE</div><div class="scene"><div class="envelope" id="icon">💌</div><h2 id="heading">A note for you</h2><p id="words"></p></div><div class="photos" id="storyPhotos"></div>
+<div class="controls"><button id="back">← Back</button><button class="primary" id="next">Next →</button></div>
+<div class="controls"><button id="play">♫ Play melody</button><button id="copy">Copy share link</button><button id="again">Create another</button></div><div class="small" id="status"></div></section>
+<p class="small">Your message and photos are encoded in the share link, not stored on a server. Avoid private or sensitive information.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);let pics=[],pages=[],page=0,data=null,ctx;
+$('files').addEventListener('change',async e=>{pics=[];$('preview').innerHTML='';for(const f of [...e.target.files].slice(0,3)){if(f.size>450000){alert('Choose photos smaller than 450 KB each.');continue}let src=await new Promise(ok=>{let r=new FileReader();r.onload=()=>ok(r.result);r.readAsDataURL(f)});pics.push(src);let im=new Image();im.src=src;$('preview').appendChild(im)}});
+function notes(){return {piano:[262,330,392,330,294,349,392,349],romantic:[392,494,587,494,440,523,659,523],dream:[523,659,784,659,587,698,880,698],calm:[220,262,330,262,196,247,294,247]}[$('music').value]}
+function play(){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;ctx=ctx||new C();ctx.resume();let t=ctx.currentTime+.05;notes().forEach(n=>{let o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=n;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.045,t+.04);g.gain.exponentialRampToValueAtTime(.0001,t+.42);o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+.44);t+=.44});$('musicInfo').textContent='Melody played. Tap again to replay.'}
+$('previewMusic').onclick=play;$('play').onclick=play;
+function render(){let p=pages[page];$('icon').textContent=p[0];$('heading').textContent=p[1];$('words').textContent=p[2];$('back').style.visibility=page?'visible':'hidden';$('next').textContent=page===pages.length-1?'Read again ↻':'Next →'}
+function show(d){data=d;let theme={'Rose pink':['#ffe5ed','#fff3f6'],'Lavender':['#eee8ff','#f8f5ff'],'Peach':['#ffeadf','#fff6ef'],'Dreamy blue':['#e3f2ff','#f4faff']}[d.theme]||['#ffe5ed','#fff3f6'];document.body.style.background=`linear-gradient(140deg,${theme[0]},${theme[1]})`;pages=[['💌','For '+d.to,'There’s something I want you to know.'],['💗','From my heart',d.msg],['✨','One more thing',d.extra||'You matter to me. I hope these words can be the beginning of a better moment.'],['🌷',d.from?'With love, '+d.from:'With all my heart','Thank you for taking a moment to read this.']];page=0;$('storyPhotos').innerHTML='';(d.pics||[]).forEach(s=>{let im=new Image();im.src=s;$('storyPhotos').appendChild(im)});$('form').style.display='none';$('story').style.display='block';render()}
+$('make').onclick=()=>{let to=$('to').value.trim(),msg=$('msg').value.trim();if(!to||!msg){alert('Please enter their name and your message.');return}let d={to,msg,extra:$('extra').value,from:$('from').value,theme:$('theme').value,music:$('music').value,pics};let enc=btoa(unescape(encodeURIComponent(JSON.stringify(d))));location.hash='story='+enc;show(d)};
+$('next').onclick=()=>{page=page===pages.length-1?0:page+1;render()};$('back').onclick=()=>{page=Math.max(0,page-1);render()};
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);$('status').textContent='Link copied! Send it to them.'}catch(e){$('status').textContent='Copy the link from your browser address bar.'}};
+$('again').onclick=()=>location.href=location.pathname;
+if(location.hash.startsWith('#story=')){try{show(JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(7))))))}catch(e){$('status').textContent='This link may be incomplete. Please create a new story.'}}
+</script></body></html>
